@@ -51,7 +51,7 @@ module.exports = app => {
     })
 
     // Create campaign
-    router.post("/campaignInfo", function(req, res) {
+    router.post("/campaign_info", function(req, res) {
         const sql = "INSERT INTO campaigns (society_id, campaign_id, name, start_time, end_time, active) VALUES (?,?,?,?,?,?)";
         const values = [
             req.body.society_id,
@@ -68,7 +68,7 @@ module.exports = app => {
     })
 
     // Get campaing information
-    router.get("/campaignInfo", function(req, res) {
+    router.get("/campaign_info", function(req, res) {
         const sql = "SELECT campaigns.name, campaigns.start_time, campaigns.end_time, campaigns.vote_count, campaigns.active FROM campaigns WHERE campaign_id = ? AND society_id = ?";
         const values = [
             req.body.campaign_id,
@@ -80,8 +80,8 @@ module.exports = app => {
         })
     })
 
-    //Update society
-    router.put("/societyInfo", function(req, res) {
+    //Update campaign
+    router.put("/campaign_info", function(req, res) {
         const sql = "UPDATE campaign SET campaign.name = ?, campaign.start_time = ?, campaign.end_time = ?, campaign.vote_count = ?, campaign.active = ? WHERE campaign_id = ? AND society_id = ?";
         const values = [
             req.body.name,
