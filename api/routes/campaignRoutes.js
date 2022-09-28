@@ -18,7 +18,7 @@ module.exports = app => {
             req.body.auth2_name
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             console.log("Added a society.")
         })
     });
@@ -29,7 +29,7 @@ module.exports = app => {
         const value = req.body.society_id;
 
         conn.query(sql, value, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         }) 
     })
@@ -45,13 +45,13 @@ module.exports = app => {
             req.body.society_id
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         })
     })
 
     // Create campaign
-    router.post("/campaign_info", function(req, res) {
+    router.post("/campaign/info", function(req, res) {
         const sql = "INSERT INTO campaigns (society_id, campaign_id, name, start_time, end_time, active) VALUES (?,?,?,?,?,?)";
         const values = [
             req.body.society_id,
@@ -62,26 +62,26 @@ module.exports = app => {
             req.body.active
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         })
     })
 
     // Get campaing information
-    router.get("/campaign_info", function(req, res) {
+    router.get("/campaign/info", function(req, res) {
         const sql = "SELECT campaigns.name, campaigns.start_time, campaigns.end_time, campaigns.vote_count, campaigns.active FROM campaigns WHERE campaign_id = ? AND society_id = ?";
         const values = [
             req.body.campaign_id,
             req.body.society_id
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         })
     })
 
     //Update campaign
-    router.put("/campaign_info", function(req, res) {
+    router.put("/campaign/info", function(req, res) {
         const sql = "UPDATE campaign SET campaign.name = ?, campaign.start_time = ?, campaign.end_time = ?, campaign.vote_count = ?, campaign.active = ? WHERE campaign_id = ? AND society_id = ?";
         const values = [
             req.body.name,
@@ -93,7 +93,7 @@ module.exports = app => {
             req.body.society_id
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         })
     })
@@ -104,7 +104,7 @@ module.exports = app => {
         const sql = "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?"
         const value = req.body.auth1
         conn.query(sql, value, function(err, results) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             if (pass === results.auth2) res.send(results)
             else res.send({error: "Failed to log in"})
         })
@@ -121,7 +121,7 @@ module.exports = app => {
             req.body.auth2
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             console.log("Added a member.")
         })
     });
@@ -132,7 +132,7 @@ module.exports = app => {
         const value = req.body.member_id;
 
         conn.query(sql, value, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         }) 
     })
@@ -148,7 +148,7 @@ module.exports = app => {
             req.body.member_id
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send("Updated a member.")
         })
     })
@@ -162,7 +162,7 @@ module.exports = app => {
             req.body.response_id
         ];
         conn.query(sql, value, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             res.send(result)
         }) 
     })
@@ -175,11 +175,158 @@ module.exports = app => {
             req.body.choice_id
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) throw err;
+            if (err) res.send({error: err})
             console.log("Added votes.")
         })
     });
 
+    // Update choice placement
+    router.put("/choice", function(req, res) {
+        const sql1 = "UPDATE choices SET choices.name = ?, choices.title = ?, choices.bio = ?, choices.image_filepath = ? WHERE response_id = ?"
+        const sql2 = "UPDATE ballot_choices SET choice_placement = ? WHERE campaign_id = ? AND question_id = ? AND response_id = ? AND choice_id = ?"
+        const values1 = [
+            req.body.name,
+            req.body.title,
+            req.body.bio,
+            req.body.filepath,
+            req.body.response_id
+        ];
+        const values2 = [
+            req.body.choice_placement,
+            req.body.campaign_id,
+            req.body.question_id,
+            req.body.response_id,
+            req.body.choice_id
+        ]
+        let res1, res2;
+        
+        conn.query(sql1, values1, function(err, result) {
+            if (err)  return res.send({error: err})
+            res1 = result
+        })
+
+        conn.query(sql2, values2, function(err, result) {
+            if (err)  return res.send({error: err})
+            res2 = result
+        })
+
+        if (res1 & res2) {
+            res.send({...res1, ...res2})
+        }
+    })
+
+    // Get choice info
+    router.get("/choice/info", function(req, res) {
+        const sql = "SELECT choices.name, choices.title, choices.bio, choices.image_filepath FROM choices WHERE response_id = ?";
+        const value = req.body.response_id
+        conn.query(sql, value, function(err, result) {
+            if (err)  return res.send({error: err})
+            res.send(result)
+        })
+    })
+
+    // Get question choice info
+    router.get("/question/choice/info", function(req, res) {
+        const sql = "SELECT choices.name, choices.title, choices.bio, choices.image_filepath, ballot_choices.choice_placement FROM choices JOIN ballot_choices USING(response_id) WHERE response_id = ? AND campaign_id = ?, and question_id = ?, and choice_id = ?";
+        const values = [
+            req.body.response_id,
+            req.body.campaign_id,
+            req.body.question_id,
+            req.body.choice_id
+        ]
+        conn.query(sql, values, function(err, result) {
+            if (err)  return res.send({error: err})
+            res.send(result)
+        })
+    })
+
+    // Declare Vote
+    router.post("/campaign/voters", function(req, res) {
+        const sql = "UPDATE campaign_voters SET voted = ?, voted_time = ? WHERE member_id = ? AND campaign_id = ?";
+        const values = [
+            req.body.voted,
+            req.body.voted_time,
+            req.body.member_id,
+            req.body.campaign_id
+        ];
+        conn.query(sql, values, function(err, result) {
+            if (err) throw err;
+            console.log("Declared votes.")
+        })
+    });
+
+    // Create Question
+    router.post("/ballot/questions", function(req, res) {
+        const sql = "INSERT INTO ballot_questions VALUES (?,?,?,?,?)";
+        const values = [
+            req.body.campaign_id,
+            req.body.question_id,
+            req.body.question,
+            req.body.maximum_selections,
+            req.body.question_placement
+        ];
+        conn.query(sql, values, function(err, result) {
+            if (err) throw err;
+            console.log("Added a question.")
+        })
+    });
+
+    // Get Question Info
+    router.get("/ballot/questions", function(req, res) {
+        const sql = "SELECT ballot_questions.question, ballot_questions.maximum_selections, ballot_questions.question_placement FROM ballot_questions WHERE campaign_id = ? AND question_id = ?";
+        const value = [
+            req.body.campaign_id,
+            req.body.question_id
+        ];
+        conn.query(sql, value, function(err, result) {
+            if (err) throw err;
+            res.send(result)
+        }) 
+    })
+
+    // Update Question
+    router.post("/ballot/questions", function(req, res) {
+        const sql = "UPDATE ballot_questions SET ballot_questions.question = ?, ballot_questions.maximum_selections = ?, ballot_questions.question_placement = ? WHERE campaign_id = ? AND question_id = ?";
+        const values = [
+            req.body.question,
+            req.body.maximum_selections,
+            req.body.question_placement,
+            req.body.campaign_id,
+            req.body.question_id
+        ];
+        conn.query(sql, values, function(err, result) {
+            if (err) throw err;
+            console.log("Updated question.")
+        })
+    });
+
+    // Create Question Choice
+    router.post("/choices", function(req, res) {
+        const sql1 = "INSERT INTO choices VALUES (?,?,?,?,?)";
+        const sql2 = "INSERT INTO ballot_choices (campaign_id, question_id, response_id, choice_id, choice_placement) VALUES (?,?,?,?,?)";
+        const values1 = [
+            req.body.response_id,
+            req.body.name,
+            req.body.title,
+            req.body.bio,
+            req.body.image_filepath
+        ];
+        const values2 = [
+            req.body.campaign_id,
+            req.body.question_id,
+            req.body.response_id,
+            req.body.choice_id,
+            req.body.choice_placement
+        ];
+        conn.query(sql1, values1, function(err, result) {
+            if (err) throw err;
+            console.log("Added a choice.")
+        })
+        conn.query(sql2, values2, function(err, result) {
+            if (err) throw err;
+            console.log("Added choice placement.")
+        })
+    });
 
     app.use('/api', router)
 }
