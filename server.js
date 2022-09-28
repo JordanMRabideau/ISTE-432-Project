@@ -4,7 +4,8 @@ const express = require("express"),
   port = process.env.PORT || 3000;
 
 const bodyParser = require("body-parser");
-const mysql = require("mysql2");
+const router = require("express").Router();
+
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({
