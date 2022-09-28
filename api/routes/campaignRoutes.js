@@ -98,6 +98,18 @@ module.exports = app => {
         })
     })
 
+    // Sign in
+    router.get("/signin", function(req, res) {
+        const pass = req.body.auth2
+        const sql = "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?"
+        const value = req.body.auth1
+        conn.query(sql, value, function(err, results) {
+            if (err) throw err;
+            if (pass === results.auth2) res.send(results)
+            else res.send({error: "Failed to log in"})
+        })
+    })
+
     //Create Member
     router.post("/members", function(req, res) {
         const sql = "INSERT INTO members VALUES (?, ?, ?, ?, ?)";
