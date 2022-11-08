@@ -8,10 +8,15 @@ module.exports = app => {
     })
 
     // Create society
+    // TESTED
     router.post("/society", function(req, res) {
-        const sql = "INSERT INTO society VALUES (?, ?, ?, ?, ?)";
+        const sql = "INSERT INTO society (name, member_count, auth1_name, auth2_name) VALUES (?, ?, ?, ?)";
+
+        if (req.body.member_count <= 0) {
+            return res.send({error: "Society must have at least 1 member"})
+        }
+
         const values = [
-            req.body.society_id,
             req.body.name,
             req.body.member_count,
             req.body.auth1_name,
@@ -19,17 +24,21 @@ module.exports = app => {
         ];
         conn.query(sql, values, function(err, result) {
             if (err) res.send({error: err})
+        
             console.log("Added a society.")
+            res.send(result)
         })
     });
 
     //Get society
+    // TESTED
     router.get("/society", function(req, res) {
         const sql = "SELECT society.name, society.member_count, society.auth1_name, society.auth2_name FROM society WHERE society_id = ?";
         const value = req.body.society_id;
 
         conn.query(sql, value, function(err, result) {
             if (err) res.send({error: err})
+            console.log(result.name)
             res.send(result)
         }) 
     })
@@ -51,19 +60,31 @@ module.exports = app => {
     })
 
     // Create campaign
+    // CHECKED
     router.post("/campaign/info", function(req, res) {
-        const sql = "INSERT INTO campaigns (society_id, campaign_id, name, start_time, end_time, active) VALUES (?,?,?,?,?,?)";
+        const start = new Date(req.body.start_time)
+        const end = new Date(req.body.end_time)
+
+        console.log(req.body.start_time)
+
+        if (start >= end) {
+            return res.send({error: "Start time can not be after end time"})
+        }
+
+        const sql = "INSERT INTO campaigns (society_id, name, start_time, end_time, active, vote_count) VALUES (?,?,?,?,?,?)";
         const values = [
             req.body.society_id,
-            req.body.campaign_id,
             req.body.name,
             req.body.start_time,
             req.body.end_time,
-            req.body.active
+            req.body.active,
+            req.body.vote_count
         ];
+
+        
         conn.query(sql, values, function(err, result) {
             if (err) res.send({error: err})
-            res.send(result)
+            return res.send(result)
         })
     })
 
@@ -110,9 +131,11 @@ module.exports = app => {
         })
     })
 
-    //Create Member
+    // Create Member
+    // Needs a second insert into campaign_voters
     router.post("/members", function(req, res) {
         const sql = "INSERT INTO members VALUES (?, ?, ?, ?, ?)";
+        const sql2 = "INSERT INTO campaign_voters (campaign_id, member_id, voted, voted_time) VALUES (?, ?, ?, ?)"
         const values = [
             req.body.member_id,
             req.body.name,
@@ -120,6 +143,39 @@ module.exports = app => {
             req.body.auth1,
             req.body.auth2
         ];
+        conn.beginTransaction((err) => {
+            if (err) {res.send({error: err})}
+
+            let memberId
+            conn.query(sql, values, function(error1, result) {
+                if (error1) {
+                    return conn.rollback(() => res.send({error: error1}))
+                }
+                memberId = result.insertId
+            })
+
+            const values2 = [
+                req.body.campaign_id,
+                memberId,
+                "Y",
+                Date.now()
+            ]
+            conn.query(sql2, values2, function(error2, result) {
+                if (error2) {
+                    return conn.rollback(() => res.send({error: error2}))
+                }
+
+                conn.commit(function(commitError) {
+                    if (commitError) {
+                        return conn.rollback(function() {
+                            res.send({error: commitError})
+                        })
+                    }
+                    res.send(result)
+                })
+            })
+
+        })
         conn.query(sql, values, function(err, result) {
             if (err) res.send({error: err})
             console.log("Added a member.")
@@ -327,6 +383,98 @@ module.exports = app => {
             console.log("Added choice placement.")
         })
     });
+
+    // Add ballot
+    router.post("/ballot", function(req, res) {
+        const sql1 = "INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (?,?,?)"
+        const sql2 = "SELECT ballots.ballot_id FROM ballots WHERE campaign_id = ? AND time_submitted = ? AND ballot_type = ?;"
+        const values = [
+            req.body.campaign_id,
+            req.body.time_submitted,
+            req.body.type
+        ]
+        conn.beginTransaction((err) => {
+            if (err) { res.send({ error: err }) }
+            
+            // Make the new ballot
+            conn.query(sql1, values, function(error, result) {
+                if (error) {
+                    return conn.rollback(() => res.send({error: error}))
+                }
+            })
+
+            // Get the new ballot
+            conn.query(sql2, values, function(error, result) {
+                if (error) {
+                    return conn.rollback(() => res.send({error: error}))
+                }
+                conn.commit(function(commitError) {
+                    if (commitError) {
+                        return conn.rollback(function() {
+                            res.send({error: commitError})
+                        })
+                    }
+                    res.send(result)
+                })
+
+            })
+        })
+    })
+
+    // Add votes
+    router.post("/votes", function(req, res) {
+        const sql1 = "SELECT ballot_choices.vote_count FROM ballot_choices WHERE choice_id = ?;"
+        const sql2 = "UPDATE ballot_choices SET vote_count = ? WHERE choice_id = ?;"
+        const sql3 = "INSERT INTO question_selections (ballot_id, question_id, choice_id) VALUES (?,?,?);"
+        const values1 = [req.body.choice_id]
+        const values2 = [req.body.ballot_id, req.body.question_id, req.body.choice_id]
+        
+        conn.beginTransaction((err) => {
+            if (err) {res.send({error: err})}
+
+            let currentCount
+
+            // Get the current count of the choice
+            conn.query(sql1, values1, function(error1, result) {
+                if (error1) {
+                    return conn.rollback(() => res.send({error: error1}))
+                }
+                currentCount = result
+            })
+            currentCount ++
+
+            // Increment the count of the choice 
+            conn.query(sql2, [currentCount, ...values1], function(error2, result) {
+                if (error2) {
+                    return conn.rollback(() => res.send({error: error2}))
+                }
+            })
+
+            conn.query(sql3, values2, function(error3, result) {
+                if (error3) {
+                    return conn.rollback(() => res.send({error: error3}))
+                }
+
+                conn.commit(function(commitError) {
+                    if (commitError) {
+                        return conn.rollback(function() {
+                            res.send({error: commitError})
+                        })
+                    }
+                    res.send(result)
+                })
+            })
+        })
+    })
+
+    router.get("/campaign/results", function(req, res) {
+        const values = [
+            req.body.campaign_id,
+            req.body.society_id
+        ]
+
+        
+    })
 
     app.use('/api', router)
 }
