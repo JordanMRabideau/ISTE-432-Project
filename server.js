@@ -3,8 +3,10 @@ const express = require("express"),
   app = express(),
   port = process.env.PORT || 3000;
 
+const cors = require("cors")
+app.use(cors())
+
 const bodyParser = require("body-parser");
-const router = require("express").Router();
 
 app.use(bodyParser.json());
 app.use(

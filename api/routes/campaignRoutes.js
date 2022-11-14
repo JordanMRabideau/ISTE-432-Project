@@ -38,8 +38,13 @@ module.exports = app => {
 
         conn.query(sql, value, function(err, result) {
             if (err) res.send({error: err})
-            console.log(result.name)
-            res.send(result)
+            // console.log(result.name)
+            if (result.length > 0) {
+                return res.send(result)
+            }
+
+            return res.send({error: "No societies found"})
+
         }) 
     })
 
@@ -114,82 +119,69 @@ module.exports = app => {
             req.body.society_id
         ];
         conn.query(sql, values, function(err, result) {
-            if (err) res.send({error: err})
+            if (err) {
+                return res.send({error: err})
+            }
+            return res.send(result)
+        })
+    })
+
+    // View campaign list
+    router.get("/campaigns", function(req, res) {
+        const sql = "GET * FROM campaigns WHERE active = ?"
+        const value = req.body.active
+
+        conn.query(sql, value, function(err, result) {
+            if (err) {
+                return res.send({error: err})
+            }
             res.send(result)
         })
     })
 
     // Sign in
     router.get("/signin", function(req, res) {
-        const pass = req.body.auth2
+        const password = req.body.auth2
         const sql = "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?"
         const value = req.body.auth1
         conn.query(sql, value, function(err, results) {
+            console.log(results)
             if (err) res.send({error: err})
-            if (pass === results.auth2) res.send(results)
+            if (password === results[0].auth2) res.send(results[0].member_id)
             else res.send({error: "Failed to log in"})
         })
     })
 
     // Create Member
-    // Needs a second insert into campaign_voters
+    // CHECKED
     router.post("/members", function(req, res) {
-        const sql = "INSERT INTO members VALUES (?, ?, ?, ?, ?)";
-        const sql2 = "INSERT INTO campaign_voters (campaign_id, member_id, voted, voted_time) VALUES (?, ?, ?, ?)"
+        const sql = "INSERT INTO members (name, admin, auth1, auth2) VALUES (?, ?, ?, ?)";
         const values = [
-            req.body.member_id,
             req.body.name,
             req.body.admin,
             req.body.auth1,
             req.body.auth2
         ];
-        conn.beginTransaction((err) => {
-            if (err) {res.send({error: err})}
 
-            let memberId
-            conn.query(sql, values, function(error1, result) {
-                if (error1) {
-                    return conn.rollback(() => res.send({error: error1}))
-                }
-                memberId = result.insertId
-            })
-
-            const values2 = [
-                req.body.campaign_id,
-                memberId,
-                "Y",
-                Date.now()
-            ]
-            conn.query(sql2, values2, function(error2, result) {
-                if (error2) {
-                    return conn.rollback(() => res.send({error: error2}))
-                }
-
-                conn.commit(function(commitError) {
-                    if (commitError) {
-                        return conn.rollback(function() {
-                            res.send({error: commitError})
-                        })
-                    }
-                    res.send(result)
-                })
-            })
-
-        })
         conn.query(sql, values, function(err, result) {
             if (err) res.send({error: err})
-            console.log("Added a member.")
+            return res.send(result)
         })
     });
 
     //Get Member Info
+    // CHECKED
     router.get("/members", function(req, res) {
         const sql = "SELECT members.name, members.admin FROM members WHERE member_id = ?";
         const value = req.body.member_id;
 
         conn.query(sql, value, function(err, result) {
             if (err) res.send({error: err})
-            res.send(result)
+            if (result.length > 0) {
+                return res.send(result)
+            }
+
+            return res.send({error: "No users found"})
         }) 
     })
 
