@@ -483,8 +483,23 @@ module.exports = (app) => {
     });
   });
 
-  router.get("/campaign/results", function (req, res) {
-    const values = [req.body.campaign_id, req.body.society_id];
+  // Get campaign results
+  router.get("/campaign/results/:campaignId", function (req, res) {
+    const values = [req.params.campaignId];
+    const query = `SELECT 
+      ballot_questions.question_id, ballot_questions.question_placement, question, maximum_selections, choices.response_id, choices.name, choices.title, choices.bio, choices.image_filepath, choices.vote_count, choices.choice_placement 
+      FROM ballot_questions
+      JOIN choices USING (question_id, campaign_id)
+      JOIN campaigns USING (campaign_id)
+      WHERE campaign_id = ?;`;
+
+    conn.query(query, values, function (error, result) {
+      if (error) {
+        return res.send({ error: error });
+      }
+
+      return res.send(result);
+    });
   });
 
   app.use("/api", router);
