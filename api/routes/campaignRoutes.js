@@ -24,10 +24,11 @@ module.exports = (app) => {
       req.body.auth2_name,
     ];
     conn.query(sql, values, function (err, result) {
-      if (err) res.send({ error: err });
+      if (err) {
+        return res.send({ error: err });
+      }
 
-      console.log("Added a society.");
-      res.send(result);
+      return res.send(result);
     });
   });
 
@@ -39,13 +40,29 @@ module.exports = (app) => {
     const value = req.body.society_id;
 
     conn.query(sql, value, function (err, result) {
-      if (err) res.send({ error: err });
-      // console.log(result.name)
+      if (err) {
+        return res.send({ error: err });
+      }
+
       if (result.length > 0) {
         return res.send(result);
       }
 
       return res.send({ error: "No societies found" });
+    });
+  });
+
+  // List all societies
+  router.get("/societies", function (req, res) {
+    const sql =
+      "SELECT society.society_id, society.name, society.member_count, society.auth1_name, society.auth2_name FROM society";
+
+    conn.query(sql, [], function (err, result) {
+      if (err) {
+        return res.send(err);
+      }
+
+      return res.send(result);
     });
   });
 
@@ -68,15 +85,15 @@ module.exports = (app) => {
 
   // Create campaign
   // CHECKED
-  router.post("/campaign/info", function (req, res) {
+  router.post("/campaign", function (req, res) {
     const start = new Date(req.body.start_time);
     const end = new Date(req.body.end_time);
-
-    console.log(req.body.start_time);
 
     if (start >= end) {
       return res.send({ error: "Start time can not be after end time" });
     }
+
+    console.log(req.body);
 
     const sql =
       "INSERT INTO campaigns (society_id, name, start_time, end_time, active, vote_count) VALUES (?,?,?,?,?,?)";
@@ -85,12 +102,14 @@ module.exports = (app) => {
       req.body.name,
       req.body.start_time,
       req.body.end_time,
-      req.body.active,
-      req.body.vote_count,
+      "N",
+      0,
     ];
 
     conn.query(sql, values, function (err, result) {
-      if (err) res.send({ error: err });
+      if (err) {
+        return res.send({ error: err });
+      }
       return res.send(result);
     });
   });
@@ -102,7 +121,6 @@ module.exports = (app) => {
     const values = [req.params.campaign_id];
     conn.query(sql, values, function (err, result) {
       if (err) {
-        console.log(err);
         return res.send({ error: err });
       }
       return res.send(result);
@@ -131,12 +149,9 @@ module.exports = (app) => {
   });
 
   // View campaign list
-  router.get("/campaigns/:active", function (req, res) {
-    const sql = "SELECT * FROM campaigns WHERE active = ?;";
-    const value = req.params.active;
-
-    console.log(req.params);
-    conn.query(sql, value, function (err, result) {
+  router.get("/campaigns/", function (req, res) {
+    const sql = "SELECT * FROM campaigns";
+    conn.query(sql, [], function (err, result) {
       if (err) {
         return res.send({ error: err });
       }
@@ -151,8 +166,9 @@ module.exports = (app) => {
       "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?";
     const value = req.body.auth1;
     conn.query(sql, value, function (err, results) {
-      console.log(results);
-      if (err) res.send({ error: err });
+      if (err) {
+        return res.send({ error: err });
+      }
       if (password === results[0].auth2) res.send(results[0].member_id);
       else res.send({ error: "Failed to log in" });
     });
@@ -230,8 +246,10 @@ module.exports = (app) => {
     const sql = "UPDATE ballot_choices SET vote_count = ? WHERE choice_id = ?";
     const values = [req.body.vote_count, req.body.choice_id];
     conn.query(sql, values, function (err, result) {
-      if (err) res.send({ error: err });
-      console.log("Added votes.");
+      if (err) {
+        res.send({ error: err });
+      }
+      return res.send("Added votes");
     });
   });
 
@@ -310,8 +328,10 @@ module.exports = (app) => {
       req.body.campaign_id,
     ];
     conn.query(sql, values, function (err, result) {
-      if (err) throw err;
-      console.log("Declared votes.");
+      if (err) {
+        return res.send(err);
+      }
+      return res.send("Declared votes");
     });
   });
 
@@ -326,8 +346,11 @@ module.exports = (app) => {
       req.body.question_placement,
     ];
     conn.query(sql, values, function (err, result) {
-      if (err) throw err;
-      console.log("Added a question.");
+      if (err) {
+        return res.send(err);
+      }
+
+      return res.send("Question added");
     });
   });
 
@@ -354,8 +377,10 @@ module.exports = (app) => {
       req.body.question_id,
     ];
     conn.query(sql, values, function (err, result) {
-      if (err) throw err;
-      console.log("Updated question.");
+      if (err) {
+        return res.send(err);
+      }
+      return res.send("Question updated");
     });
   });
 
@@ -379,11 +404,15 @@ module.exports = (app) => {
       req.body.choice_placement,
     ];
     conn.query(sql1, values1, function (err, result) {
-      if (err) throw err;
+      if (err) {
+        return res.send(err);
+      }
       console.log("Added a choice.");
     });
     conn.query(sql2, values2, function (err, result) {
-      if (err) throw err;
+      if (err) {
+        return res.send(err);
+      }
       console.log("Added choice placement.");
     });
   });
