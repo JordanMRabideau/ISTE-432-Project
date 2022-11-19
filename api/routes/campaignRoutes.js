@@ -1,7 +1,7 @@
 module.exports = (app) => {
   const router = require("express").Router();
-  const society = require("../controllers/campaignController");
   const conn = require("../models/db.js");
+  const controller = require("../controllers/campaignController");
 
   router.get("/test", function (req, res) {
     return res.send({ message: "Test passsed" });
@@ -530,6 +530,9 @@ module.exports = (app) => {
       return res.send(result);
     });
   });
+
+  // Create new campaign with ballot and questions
+  router.post("/campaign/generate", controller.generate_campaign)
 
   app.use("/api", router);
 };
