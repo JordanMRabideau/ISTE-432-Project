@@ -297,7 +297,7 @@ module.exports = (app) => {
     const value = req.body.response_id;
     conn.query(sql, value, function (err, result) {
       if (err) return res.send({ error: err });
-      res.send(result);
+      return res.send(result);
     });
   });
 
