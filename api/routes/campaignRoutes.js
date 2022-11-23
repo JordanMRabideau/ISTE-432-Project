@@ -149,10 +149,12 @@ module.exports = (app) => {
   });
 
   // View campaign list
-  router.get("/campaigns/", function (req, res) {
-    const sql = "SELECT * FROM campaigns";
+  router.get("/campaigns", function (req, res) {
+    const sql =
+      "SELECT active, campaign_id, end_time, start_time, campaigns.name, society.name AS society_name, society_id, vote_count FROM campaigns JOIN society USING(society_id)";
     conn.query(sql, [], function (err, result) {
       if (err) {
+        console.log(err);
         return res.send({ error: err });
       }
       res.send(result);
@@ -532,7 +534,10 @@ module.exports = (app) => {
   });
 
   // Create new campaign with ballot and questions
-  router.post("/campaign/generate", controller.generate_campaign)
+  router.post("/campaign/generate", controller.generate_campaign);
+
+  // Create a society with members
+  router.post("/society/generate", controller.generate_society);
 
   app.use("/api", router);
 };
