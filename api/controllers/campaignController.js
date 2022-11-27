@@ -117,7 +117,52 @@ exports.generate_campaign = (req, res) => {
 };
 
 exports.generate_society = (req, res) => {
-  console.log("hi");
-  console.log(req.body);
-  return res.send(req.body);
+  const society_name = req.body.name;
+  const auth1_name = req.body.auth1_name;
+  const auth2_name = req.body.auth2_name;
+  const members = req.body.members;
+  const member_count = members.length;
+
+  conn.beginTransaction((err) => {
+    if (err) {
+      return res.send(err);
+    }
+
+    const insertSociety = `INSERT INTO society (name, auth1_name, auth2_name, member_count) VALUES (?, ?, ?, ?)`;
+    const societyValues = [society_name, auth1_name, auth2_name, member_count];
+
+    conn.query(insertSociety, societyValues, function (error1, result1) {
+      if (error1) {
+        return conn.rollback(() => {
+          return res.send(error1);
+        });
+      }
+
+      const society_id = result1.insertId;
+      const membersValues = members.map((mem) => {
+        return [society_id, ...mem];
+      });
+      const insertMembers = `INSERT INTO members (society_id, name, auth1, auth2, admin) VALUES ?`;
+
+      conn.query(insertMembers, [membersValues], function (error2, result2) {
+        if (error2) {
+          return conn.rollback(() => {
+            return res.send(error2);
+          });
+        }
+
+        conn.commit(function (commitError) {
+          if (commitError) {
+            return conn.rollback(function () {
+              return res.send(commitError);
+            });
+          }
+
+          return res.send(result2);
+        });
+        // return res.send(result2)
+      });
+    });
+  });
+  //   return res.send(req.body);
 };

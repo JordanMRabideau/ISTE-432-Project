@@ -66,6 +66,19 @@ module.exports = (app) => {
     });
   });
 
+  router.get("/societies/:society_id", function (req, res) {
+    const query = `SELECT society.society_id, society.name, society.member_count, society.auth1_name, society.auth2_name FROM society WHERE society.society_id = ?`;
+    const values = [req.params.society_id];
+
+    conn.query(query, values, function (err, result) {
+      if (err) {
+        return res.send(err);
+      }
+
+      return res.send(result);
+    });
+  });
+
   //Update society
   router.put("/society", function (req, res) {
     const sql =
