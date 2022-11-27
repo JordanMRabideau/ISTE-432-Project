@@ -116,6 +116,19 @@ exports.generate_campaign = (req, res) => {
   });
 };
 
+exports.getSocietyCampaigns = (req, res) => {
+  const society_id = Number(req.params.society_id);
+  const getCampaigns = `SELECT campaign_id, name, start_time, end_time, active, vote_count FROM campaigns WHERE society_id = ?`;
+
+  conn.query(getCampaigns, [society_id], function (error, result) {
+    if (error) {
+      return res.send(error);
+    }
+
+    return res.send(result);
+  });
+};
+
 exports.generate_society = (req, res) => {
   const society_name = req.body.name;
   const auth1_name = req.body.auth1_name;
