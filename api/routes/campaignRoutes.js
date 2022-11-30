@@ -175,17 +175,28 @@ module.exports = (app) => {
   });
 
   // Sign in
-  router.get("/signin", function (req, res) {
+  router.post("/signin", function (req, res) {
     const password = req.body.auth2;
+    const value = req.body.auth1;
+
     const sql =
       "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?";
-    const value = req.body.auth1;
     conn.query(sql, value, function (err, results) {
       if (err) {
-        return res.send({ error: err });
+        return res.status(502).send();
       }
-      if (password === results[0].auth2) res.send(results[0].member_id);
-      else res.send({ error: "Failed to log in" });
+
+      if (results.length === 0) {
+        return res.status(401).send()
+      }
+
+      else if (password === results[0].auth2) {
+        return res.send({user: results[0].member_id})
+      }
+
+      else {
+        return res.status(401).send();
+      } 
     });
   });
 
