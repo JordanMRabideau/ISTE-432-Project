@@ -155,10 +155,11 @@ exports.getSocietyCampaigns = (req, res) => {
 };
 
 exports.submit_ballot = (req, res) => {
-  const society_id = Number(req.params.society_id)
-  const campaign_id = Number(req.params.campaign_id)
-  const member_id = Number(req.params.member_id)
-  const selections = req.params.selections
+  const society_id = Number(req.body.society_id)
+  const campaign_id = Number(req.body.campaign_id)
+  const member_id = Number(req.body.member_id)
+  const selections = req.body.selections
+  console.log(req.body)
 
   conn.beginTransaction((err) => {
     if (err) {
@@ -167,7 +168,7 @@ exports.submit_ballot = (req, res) => {
 
     // First create the ballot entry
     const insertBallot = `INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (?, ?, ?)`
-    const ballotValues = [campaign_id, Date.now(), 'DIGITAL']
+    const ballotValues = [campaign_id, new Date(), 'DIGITAL']
 
     conn.query(insertBallot, ballotValues, function(error1, result1) {
       if (error1) {
@@ -191,7 +192,7 @@ exports.submit_ballot = (req, res) => {
         }
 
         // Then update the vote count
-        const updateCount = `UPDATE choices SET vote_count = vote_count + 1 WHERE response_id IN ?`
+        const updateCount = `UPDATE choices SET vote_count = vote_count + 1 WHERE response_id IN (?)`
         const countValues = selections.map((selection) => selection.response_id)
 
         conn.query(updateCount, [countValues], function(error3, result3) {
@@ -201,9 +202,9 @@ exports.submit_ballot = (req, res) => {
             })
           }
 
-          // Finally update the member's vote status
-          const updateMember = `UPDATE campaign_voters SET voted = ?, voted_time = ? WHERE member_id = ? AND campaign_id = ?`
-          const memberValues = ["Y", Date.now(), member_id, campaign_id]
+          // Update the member's vote status
+          const updateMember = `UPDATE campaign_voters SET voted = ?, voted_time = ? WHERE member_id = ? AND campaign_id = ? AND voted <> 'Y'`
+          const memberValues = ["Y", new Date(), member_id, campaign_id]
 
           conn.query(updateMember, memberValues, function(error4, result4) {
             if (error4) {
@@ -212,15 +213,26 @@ exports.submit_ballot = (req, res) => {
               })
             }
 
-            conn.commit(function (commitError) {
-              if (commitError) {
-                return conn.rollback(function () {
-                  return res.send(commitError);
-                });
+            // Increment the campaign's vote count
+            const incrementVotes = `UPDATE campaigns SET vote_count = vote_count + 1 WHERE campaign_id = ?`
+            conn.query(incrementVotes, [campaign_id], function(error5, result5) {
+              if (error5) {
+                return conn.rollback(() => {
+                  return res.send(error5)
+                })
               }
-    
-              return res.send(result4);
-            });
+
+              conn.commit(function (commitError) {
+                if (commitError) {
+                  return conn.rollback(function () {
+                    return res.send(commitError);
+                  });
+                }
+      
+                return res.send(result5);
+              });
+            })
+
           })
           
         })
