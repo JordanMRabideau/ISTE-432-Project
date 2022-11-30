@@ -552,6 +552,9 @@ module.exports = (app) => {
   // Create a society with members
   router.post("/society/generate", controller.generate_society);
 
+  // Submit a user ballot
+  router.post("/ballot/submit", controller.submit_ballot)
+
   // Get society's campaigns
   router.get(
     "/societies/campaigns/:society_id",

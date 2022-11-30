@@ -129,6 +129,83 @@ exports.getSocietyCampaigns = (req, res) => {
   });
 };
 
+exports.submit_ballot = (req, res) => {
+  const society_id = Number(req.params.society_id)
+  const campaign_id = Number(req.params.campaign_id)
+  const member_id = Number(req.params.member_id)
+  const selections = req.params.selections
+
+  conn.beginTransaction((err) => {
+    if (err) {
+      return res.send(err)
+    }
+
+    // First create the ballot entry
+    const insertBallot = `INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (?, ?, ?)`
+    const ballotValues = [campaign_id, Date.now(), 'DIGITAL']
+
+    conn.query(insertBallot, ballotValues, function(error1, result1) {
+      if (error1) {
+        return conn.rollback(() => {
+          return res.send(error1)
+        })
+      }
+
+    // Then insert the choices
+      const ballot_id = result1.insertId
+      const insertSelections = `INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES ?`
+      const ballotSelections = selections.map((selection) => {
+        return [ballot_id, selection.question_id, selection.response_id]
+      })
+
+      conn.query(insertSelections, [ballotSelections], function(error2, result2) {
+        if (error2) {
+          return conn.rollback(() => {
+            return res.send(error2)
+          })
+        }
+
+        // Then update the vote count
+        const updateCount = `UPDATE choices SET vote_count = vote_count + 1 WHERE response_id IN ?`
+        const countValues = selections.map((selection) => selection.response_id)
+
+        conn.query(updateCount, [countValues], function(error3, result3) {
+          if (error3) {
+            return conn.rollback(() => {
+              return res.send(error3)
+            })
+          }
+
+          // Finally update the member's vote status
+          const updateMember = `UPDATE campaign_voters SET voted = ?, voted_time = ? WHERE member_id = ? AND campaign_id = ?`
+          const memberValues = ["Y", Date.now(), member_id, campaign_id]
+
+          conn.query(updateMember, memberValues, function(error4, result4) {
+            if (error4) {
+              return conn.rollback(() => {
+                return res.send(error4)
+              })
+            }
+
+            conn.commit(function (commitError) {
+              if (commitError) {
+                return conn.rollback(function () {
+                  return res.send(commitError);
+                });
+              }
+    
+              return res.send(result4);
+            });
+          })
+          
+        })
+
+
+      })
+    })
+  })
+}
+
 exports.generate_society = (req, res) => {
   const society_name = req.body.name;
   const auth1_name = req.body.auth1_name;
