@@ -52,6 +52,23 @@ module.exports = (app) => {
     });
   });
 
+  /*
+    Get society auth labels
+  */
+  router.get("/authname/:society_id", function (req, res) {
+    const sql = 
+      "SELECT society.auth1_name, society.auth2_name FROM society WHERE society_id = ?";
+    const value = [req.params.society_id];
+
+    conn.query(sql, value, function (err, result) {
+      if (err) {
+        return res.send(err);
+      }
+
+      return res.send(result)
+    });
+  });
+
   // List all societies
   router.get("/societies", function (req, res) {
     const sql =
@@ -61,7 +78,7 @@ module.exports = (app) => {
       if (err) {
         return res.send(err);
       }
-
+      
       return res.send(result);
     });
   });
@@ -174,13 +191,43 @@ module.exports = (app) => {
     });
   });
 
-  // Sign in
+  /*
+    Sign-on route for clients, or non-admin users.
+  */
   router.post("/signin", function (req, res) {
     const password = req.body.auth2;
     const value = req.body.auth1;
 
     const sql =
       "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?";
+    conn.query(sql, value, function (err, results) {
+      if (err) {
+        return res.status(502).send();
+      }
+
+      if (results.length === 0) {
+        return res.status(401).send()
+      }
+
+      else if (password === results[0].auth2) {
+        return res.send({user: results[0].member_id})
+      }
+
+      else {
+        return res.status(401).send();
+      } 
+    });
+  });
+
+  /*
+    Sign-on route for admin users
+  */
+  router.post("/admin", function (req, res) {
+    const password = req.body.auth2;
+    const value = req.body.auth1;
+
+    const sql =
+      "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ? AND members.admin = 'Y'";
     conn.query(sql, value, function (err, results) {
       if (err) {
         return res.status(502).send();
