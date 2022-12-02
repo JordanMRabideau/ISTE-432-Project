@@ -572,5 +572,10 @@ module.exports = (app) => {
     controller.getSocietyCampaigns
   );
 
+  router.put("/activate", controller.toggle_campaign)
+
+  // Get member's available campaigns
+  router.get("/campaigns/:society_id/:member_id", controller.getMemberCampaigns)
+
   app.use("/api", router);
 };

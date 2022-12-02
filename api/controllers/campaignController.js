@@ -154,6 +154,22 @@ exports.getSocietyCampaigns = (req, res) => {
   });
 };
 
+// Get all active campaigns that a user hasn't voted in
+exports.getMemberCampaigns = (req, res) => {
+  const society_id = Number(req.params.society_id);
+  const member_id = Number(req.params.member_id);
+  const getCampaigns = `SELECT campaign_id, name, start_time, end_time FROM campaigns JOIN campaign_voters USING (campaign_id) WHERE society_id = ? AND member_id = ? AND voted="N" AND active = "Y"`
+  const values = [society_id, member_id]
+
+  conn.query(getCampaigns, values, function(err, result) {
+    if (err) {
+      return res.send(err)
+    }
+
+    return res.send(result)
+  })
+}
+
 exports.submit_ballot = (req, res) => {
   const society_id = Number(req.body.society_id)
   const campaign_id = Number(req.body.campaign_id)
@@ -173,7 +189,7 @@ exports.submit_ballot = (req, res) => {
     conn.query(insertBallot, ballotValues, function(error1, result1) {
       if (error1) {
         return conn.rollback(() => {
-          return res.send(error1)
+          return res.status(501).send(error1)
         })
       }
 
@@ -187,7 +203,7 @@ exports.submit_ballot = (req, res) => {
       conn.query(insertSelections, [ballotSelections], function(error2, result2) {
         if (error2) {
           return conn.rollback(() => {
-            return res.send(error2)
+            return res.status(501).send(error2)
           })
         }
 
@@ -198,7 +214,7 @@ exports.submit_ballot = (req, res) => {
         conn.query(updateCount, [countValues], function(error3, result3) {
           if (error3) {
             return conn.rollback(() => {
-              return res.send(error3)
+              return res.status(501).send(error3)
             })
           }
 
@@ -209,7 +225,7 @@ exports.submit_ballot = (req, res) => {
           conn.query(updateMember, memberValues, function(error4, result4) {
             if (error4) {
               return conn.rollback(() => {
-                return res.send(error4)
+                return res.status(501).send(error4)
               })
             }
 
@@ -218,14 +234,14 @@ exports.submit_ballot = (req, res) => {
             conn.query(incrementVotes, [campaign_id], function(error5, result5) {
               if (error5) {
                 return conn.rollback(() => {
-                  return res.send(error5)
+                  return res.status(501).send(error5)
                 })
               }
 
               conn.commit(function (commitError) {
                 if (commitError) {
                   return conn.rollback(function () {
-                    return res.send(commitError);
+                    return res.status(501).send(commitError);
                   });
                 }
       
@@ -240,6 +256,23 @@ exports.submit_ballot = (req, res) => {
 
       })
     })
+  })
+}
+
+exports.toggle_campaign = (req, res) => {
+  console.log(req.body.enable)
+  const campaign_id = req.body.campaign_id
+  const active = req.body.enable == "true" ? "Y" : "N"
+  console.log(active)
+  const update = `UPDATE campaigns SET active = ? WHERE campaign_id = ?`
+  const values = [active, campaign_id]
+
+  conn.query(update, values, function(error, response) {
+    if (error) {
+      return res.send(error)
+    }
+
+    return res.send(response)
   })
 }
 
@@ -287,9 +320,8 @@ exports.generate_society = (req, res) => {
 
           return res.send(result2);
         });
-        // return res.send(result2)
       });
     });
   });
-  //   return res.send(req.body);
+
 };
