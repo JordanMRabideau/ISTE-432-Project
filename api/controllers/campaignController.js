@@ -199,9 +199,9 @@ exports.submit_paper_ballot = (req, res) => {
 
       const added = ballots.affectedRows
 
-      const insertSelections = `INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES ?`
+      const insertSelections = `INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES ?`
       const ballotSelections = selections.map((selection) => {
-        return [selection.ballot_id, selection.question_id, selection.response_id]
+        return [campaign_id, selection.ballot_id, selection.question_id, selection.response_id]
       })
 
       conn.query(insertSelections, [ballotSelections], function(selectionsError, response) {
@@ -303,9 +303,9 @@ exports.submit_ballot = (req, res) => {
         }
   
         
-        const insertSelections = `INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES ?`
+        const insertSelections = `INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES ?`
         const ballotSelections = selections.map((selection) => {
-          return [newId, selection.question_id, selection.response_id]
+          return [campaign_id, newId, selection.question_id, selection.response_id]
         })
   
         conn.query(insertSelections, [ballotSelections], function(error2, result2) {
@@ -361,19 +361,81 @@ exports.submit_ballot = (req, res) => {
             })
             
           })
-  
-  
+
         })
       })
     })
   })
 }
 
+exports.get_result_sample = (req, res) => {
+  const campaign_id = req.params.campaignId
+  const start_ballot = req.params.startBallot
+  const end_ballot = req.params.endBallot
+
+
+  let values = [campaign_id]
+  let query1
+
+  if (end_ballot) {
+    values.push(start_ballot, end_ballot)
+    query1 = `SELECT ballots.campaign_id, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
+      FROM ballots
+      JOIN question_selections USING (ballot_id)
+      RIGHT JOIN ballot_questions ON ballot_questions.question_id = question_selections.question_id
+      JOIN choices ON choices.response_id = question_selections.response_id
+      WHERE ballots.campaign_id = ?
+      AND ballot_id BETWEEN ? AND ?`
+  } else {
+    values.push(start_ballot)
+    query1 = `SELECT ballots.campaign_id, COUNT(response_id) AS count, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
+      FROM ballots
+      JOIN question_selections USING (ballot_id)
+      RIGHT JOIN ballot_questions ON ballot_questions.question_id = question_selections.question_id
+      JOIN choices ON choices.response_id = question_selections.response_id
+      WHERE ballots.campaign_id = ?
+      AND ballot_id = ?`
+  }
+
+  conn.query(query1, values, function(error, response) {
+    if (error) {
+      console.log(error)
+      return res.send(error)
+    }
+
+    const query2 = `SELECT 
+      ballot_questions.question_id, ballot_questions.question_placement, question, maximum_selections, choices.response_id, choices.name, choices.choice_placement 
+      FROM ballot_questions
+      JOIN choices USING (question_id, campaign_id)
+      JOIN campaigns USING (campaign_id)
+      WHERE campaign_id = ?;`
+
+    conn.query(query2, [campaign_id], function(error2, result2) {
+      if (error2) {
+        return res.send(error2)
+      }
+
+      result2.forEach(item => {
+        item.vote_count = 0
+      })
+
+      response.forEach(r => {
+        const choice = result2.find(q => q.response_id === r.response_id)
+        choice.vote_count++
+      })
+
+      return res.send(result2)
+    })
+
+  })
+  
+
+
+}
+
 exports.toggle_campaign = (req, res) => {
-  console.log(req.body.enable)
   const campaign_id = req.body.campaign_id
   const active = req.body.enable == "true" ? "Y" : "N"
-  console.log(active)
   const update = `UPDATE campaigns SET active = ? WHERE campaign_id = ?`
   const values = [active, campaign_id]
 

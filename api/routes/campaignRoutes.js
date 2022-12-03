@@ -623,6 +623,8 @@ module.exports = (app) => {
 
   router.put("/activate", controller.toggle_campaign)
 
+  router.get("/campaign/results/:campaignId/:startBallot/:endBallot?", controller.get_result_sample)
+
   // Get member's available campaigns
   router.get("/campaigns/:society_id/:member_id", controller.getMemberCampaigns)
 

@@ -11,49 +11,23 @@ INSERT INTO members (society_id, name, admin, auth1, auth2) VALUES (1, "Jordan R
 INSERT INTO members (society_id, name, admin, auth1, auth2) VALUES (1, "Ryan Beach", "N", "05", "beach05");
 INSERT INTO members (society_id, name, admin, auth1, auth2) VALUES (1, "Steffen Barr", "N", "06", "barr06");
 
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (1, 1, "Y", "2022-11-18 10:30:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (2, 1, "Y", "2022-11-18 11:40:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (3, 1, "Y", "2022-11-18 16:00:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (4, 1, "Y", "2022-11-18 05:30:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (5, 1, "Y", "2022-11-18 10:22:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (6, 1, "Y", "2022-11-18 19:34:22");
-
-INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (1, "2022-11-18 10:30:00", "DIGITAL");
-INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (1, "2022-11-18 11:40:00", "DIGITAL");
-INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (1, "2022-11-18 16:00:00", "DIGITAL");
-INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (1, "2022-11-18 05:30:00", "DIGITAL");
-INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (1, "2022-11-18 10:22:00", "DIGITAL");
-INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (1, "2022-11-18 19:34:22", "DIGITAL");
-
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (1, 1, 1);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (1, 2, 3);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (1, 3, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (2, 1, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (2, 2, 1);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (2, 3, 3);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (3, 1, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (3, 2, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (3, 3, 1);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (4, 1, 3);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (4, 2, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (4, 3, 1);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (5, 1, 3);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (5, 2, 3);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (5, 3, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (6, 1, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (6, 2, 2);
-INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES (6, 3, 2);
+INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (1, 1, "N", "2022-11-18 10:30:00");
+INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (2, 1, "N", "2022-11-18 11:40:00");
+INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (3, 1, "N", "2022-11-18 16:00:00");
+INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (4, 1, "N", "2022-11-18 05:30:00");
+INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (5, 1, "N", "2022-11-18 10:22:00");
+INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (6, 1, "N", "2022-11-18 19:34:22");
 
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "Secretary", 2, 1);
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "Warden", 1, 2);
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "President", 1, 3);
 
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "Gabe Newel", "Steam guy", "A web-interface dude", "./assets/images/image01.jpg", 1, 1);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "Tim Cook", "Apple guy", "A wealthy dude", "./assets/images/image02.jpg", 3, 2);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "David Munson", "1mil per year guy", "An EDM dude", "./assets/images/image03.jpg", 2, 3);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Wayne Lytle", "Animation guy", "An anti key-frame dude", "./assets/images/image04.jpg", 1, 1);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Bill Gates", "O.S. guy", "An GUI fan", "./assets/images/image05.jpg", 3, 2);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Elon Musk", "Chief Twit", "A Twitter bankruptor", "./assets/images/image06.jpg", 2, 3);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Jenson Huang", "Overpriced graphics unit guy", "An all the frames type of dude", "./assets/images/image07.jpg", 2, 1);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Stephen Zilora JR.", "Lil guy", "A pretty cool dude", "./assets/images/image08.jpg", 3, 2);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Charlie Murphy", "Ultimate slappie guy", "An interesting dude", "./assets/images/image09.jpg", 1, 3);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "Gabe Newel", "Steam guy", "A web-interface dude", "./assets/images/image01.jpg", 0, 1);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "Tim Cook", "Apple guy", "A wealthy dude", "./assets/images/image02.jpg", 0, 2);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "David Munson", "1mil per year guy", "An EDM dude", "./assets/images/image03.jpg", 0, 3);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Wayne Lytle", "Animation guy", "An anti key-frame dude", "./assets/images/image04.jpg", 0, 1);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Bill Gates", "O.S. guy", "An GUI fan", "./assets/images/image05.jpg", 0, 2);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Elon Musk", "Chief Twit", "A Twitter bankruptor", "./assets/images/image06.jpg", 0, 3);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Jenson Huang", "Overpriced graphics unit guy", "An all the frames type of dude", "./assets/images/image07.jpg", 0, 1);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Stephen Zilora JR.", "Lil guy", "A pretty cool dude", "./assets/images/image08.jpg", 0, 2);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Charlie Murphy", "Ultimate slappie guy", "An interesting dude", "./assets/images/image09.jpg", 0, 3);
