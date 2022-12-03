@@ -11,7 +11,7 @@ exports.generate_campaign = (req, res) => {
       return res.send(err);
     }
 
-    //Get the list of members in the current society
+    // Get a list of members in the current Society
     const getMembers = `SELECT member_id FROM members WHERE society_id = ?`
     conn.query(getMembers, [society_id], function(error1, members) {
       if (error1) {
@@ -20,7 +20,7 @@ exports.generate_campaign = (req, res) => {
         });
       }
 
-      // Make a query for inserting a new campaign
+      // Query for inserting a new campaign to the database
       const insertCampaign = `INSERT INTO campaigns (society_id, name, start_time, end_time, vote_count, active) VALUES (?, ?, ?, ?, ?, ?)`;
 
       const insertCampaignValues = [
@@ -43,7 +43,7 @@ exports.generate_campaign = (req, res) => {
             });
           }
 
-          // use the campaign id to insert voters
+          // Use campaign_id to insert voters
           const campaign_id = result1.insertId;
           const insertVoters = `INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES ?`
           const voterValues = members.map((member) => {
@@ -78,7 +78,7 @@ exports.generate_campaign = (req, res) => {
                   });
                 }
   
-                // this will determine the ids of the newly generated questions to be used for choice insertion
+                // Determine the ID's of the newly generated questions. Will be used for insertion of choices
                 const questionIds = [];
                 for (
                   let i = result3.insertId;
@@ -141,6 +141,7 @@ exports.generate_campaign = (req, res) => {
   });
 };
 
+// Get a society's campaigns
 exports.getSocietyCampaigns = (req, res) => {
   const society_id = Number(req.params.society_id);
   const getCampaigns = `SELECT campaign_id, name, start_time, end_time, active, vote_count FROM campaigns WHERE society_id = ?`;
@@ -154,7 +155,7 @@ exports.getSocietyCampaigns = (req, res) => {
   });
 };
 
-// Get all active campaigns that a user hasn't voted in
+// Get all active campaigns that a given user hasn't voted in
 exports.getMemberCampaigns = (req, res) => {
   const society_id = Number(req.params.society_id);
   const member_id = Number(req.params.member_id);
@@ -170,6 +171,7 @@ exports.getMemberCampaigns = (req, res) => {
   })
 }
 
+// Import paper ballot submissions
 exports.submit_paper_ballot = (req, res) => {
 
   const campaign_id = Number(req.body.campaign_id)
@@ -237,7 +239,6 @@ exports.submit_paper_ballot = (req, res) => {
             })
           }
 
-
           // Increment the campaign's vote count
           const incrementVotes = `UPDATE campaigns SET vote_count = vote_count + ${added} WHERE campaign_id = ?`
           conn.query(incrementVotes, [campaign_id], function(voteError, vote) {
@@ -264,6 +265,7 @@ exports.submit_paper_ballot = (req, res) => {
   })
 }
 
+// Import web app ballot submissions
 exports.submit_ballot = (req, res) => {
   const society_id = Number(req.body.society_id)
   const campaign_id = Number(req.body.campaign_id)
@@ -368,6 +370,7 @@ exports.submit_ballot = (req, res) => {
   })
 }
 
+// Get campaign result sample
 exports.get_result_sample = (req, res) => {
   const campaign_id = req.params.campaignId
   const start_ballot = req.params.startBallot
@@ -376,7 +379,8 @@ exports.get_result_sample = (req, res) => {
 
   let values = [campaign_id]
   let query1
-
+  
+  // Range between ballot ID's
   if (end_ballot) {
     values.push(start_ballot, end_ballot)
     query1 = `SELECT ballots.campaign_id, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
@@ -387,6 +391,7 @@ exports.get_result_sample = (req, res) => {
       WHERE ballots.campaign_id = ?
       AND ballot_id BETWEEN ? AND ?`
   } else {
+    // Particular ballot ID
     values.push(start_ballot)
     query1 = `SELECT ballots.campaign_id, COUNT(response_id) AS count, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
       FROM ballots
@@ -403,6 +408,7 @@ exports.get_result_sample = (req, res) => {
       return res.send(error)
     }
 
+    // Results of campaign
     const query2 = `SELECT 
       ballot_questions.question_id, ballot_questions.question_placement, question, maximum_selections, choices.response_id, choices.name, choices.choice_placement 
       FROM ballot_questions
@@ -433,6 +439,7 @@ exports.get_result_sample = (req, res) => {
 
 }
 
+// Toggle whether a campaign is active or not
 exports.toggle_campaign = (req, res) => {
   const campaign_id = req.body.campaign_id
   const active = req.body.enable == "true" ? "Y" : "N"
@@ -448,6 +455,7 @@ exports.toggle_campaign = (req, res) => {
   })
 }
 
+// Create a new society
 exports.generate_society = (req, res) => {
   const society_name = req.body.name;
   const auth1_name = req.body.auth1_name;

@@ -8,7 +8,6 @@ module.exports = (app) => {
   });
 
   // Create society
-  // TESTED
   router.post("/society", function (req, res) {
     const sql =
       "INSERT INTO society (name, member_count, auth1_name, auth2_name) VALUES (?, ?, ?, ?)";
@@ -32,8 +31,7 @@ module.exports = (app) => {
     });
   });
 
-  //Get society
-  // TESTED
+  // Get society
   router.get("/society", function (req, res) {
     const sql =
       "SELECT society.name, society.member_count, society.auth1_name, society.auth2_name FROM society WHERE society_id = ?";
@@ -52,9 +50,7 @@ module.exports = (app) => {
     });
   });
 
-  /*
-    Get society auth labels
-  */
+  // Get society auth labels
   router.get("/authname/:society_id", function (req, res) {
     const sql = 
       "SELECT society.auth1_name, society.auth2_name FROM society WHERE society_id = ?";
@@ -83,6 +79,7 @@ module.exports = (app) => {
     });
   });
 
+  // Get information for single society
   router.get("/societies/:society_id", function (req, res) {
     const query = `SELECT society.society_id, society.name, society.member_count, society.auth1_name, society.auth2_name FROM society WHERE society.society_id = ?`;
     const values = [req.params.society_id];
@@ -96,7 +93,7 @@ module.exports = (app) => {
     });
   });
 
-  //Update society
+  // Update society
   router.put("/society", function (req, res) {
     const sql =
       "UPDATE society SET society.name = ?, society.member_count = ?, society.auth1_name = ?, society.auth2_name = ? WHERE society_id = ?";
@@ -114,7 +111,6 @@ module.exports = (app) => {
   });
 
   // Create campaign
-  // CHECKED
   router.post("/campaign", function (req, res) {
     const start = new Date(req.body.start_time);
     const end = new Date(req.body.end_time);
@@ -144,7 +140,7 @@ module.exports = (app) => {
     });
   });
 
-  // Get campaing information
+  // Get campaign information
   router.get("/campaign/info/:campaign_id", function (req, res) {
     const sql =
       "SELECT campaigns.name, society.name AS 'society_name', campaigns.start_time, campaigns.end_time, campaigns.vote_count, campaigns.active FROM campaigns JOIN society USING (society_id) WHERE campaign_id = ?";
@@ -157,7 +153,7 @@ module.exports = (app) => {
     });
   });
 
-  //Update campaign
+  // Update campaign
   router.put("/campaign/info", function (req, res) {
     const sql =
       "UPDATE campaign SET campaign.name = ?, campaign.start_time = ?, campaign.end_time = ?, campaign.vote_count = ?, campaign.active = ? WHERE campaign_id = ? AND society_id = ?";
@@ -191,9 +187,7 @@ module.exports = (app) => {
     });
   });
 
-  /*
-    Sign-on route for clients, or non-admin users.
-  */
+  // Sign-on route for clients, or non-admin users.
   router.post("/signin", function (req, res) {
     const password = req.body.auth2;
     const value = req.body.auth1;
@@ -219,9 +213,7 @@ module.exports = (app) => {
     });
   });
 
-  /*
-    Sign-on route for admin users
-  */
+  // Sign-on route for admin users
   router.post("/admin", function (req, res) {
     const password = req.body.auth2;
     const value = req.body.auth1;
@@ -248,7 +240,6 @@ module.exports = (app) => {
   });
 
   // Create Member
-  // CHECKED
   router.post("/members", function (req, res) {
     const sql =
       "INSERT INTO members (name, admin, auth1, auth2) VALUES (?, ?, ?, ?)";
@@ -265,8 +256,7 @@ module.exports = (app) => {
     });
   });
 
-  //Get Member Info
-  // CHECKED
+  // Get Member Info
   router.get("/members", function (req, res) {
     const sql =
       "SELECT members.name, members.admin FROM members WHERE member_id = ?";
@@ -282,7 +272,7 @@ module.exports = (app) => {
     });
   });
 
-  //Update Member
+  // Update Member
   router.put("/members", function (req, res) {
     const sql =
       "UPDATE members SET members.name = ?, members.admin = ?, members.auth1 = ?, members.auth2 = ? WHERE members.member_id = ?";
@@ -299,7 +289,7 @@ module.exports = (app) => {
     });
   });
 
-  //Get Votes
+  // Get Votes
   router.get("/ballot_choices", function (req, res) {
     const sql =
       "SELECT choice_id, vote_count FROM ballot_choices WHERE campaign_id = ? AND question_id = ? AND response_id = ?";
@@ -314,7 +304,7 @@ module.exports = (app) => {
     });
   });
 
-  //Add Votes
+  // Add Votes
   router.post("/ballot_choices", function (req, res) {
     const sql = "UPDATE ballot_choices SET vote_count = ? WHERE choice_id = ?";
     const values = [req.body.vote_count, req.body.choice_id];
@@ -621,8 +611,10 @@ module.exports = (app) => {
     controller.getSocietyCampaigns
   );
 
+  // Update campaign active status
   router.put("/activate", controller.toggle_campaign)
-
+  
+  // Get results between range of ballot IDs
   router.get("/campaign/results/:campaignId/:startBallot/:endBallot?", controller.get_result_sample)
 
   // Get member's available campaigns
