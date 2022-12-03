@@ -170,90 +170,200 @@ exports.getMemberCampaigns = (req, res) => {
   })
 }
 
-exports.submit_ballot = (req, res) => {
-  const society_id = Number(req.body.society_id)
+exports.submit_paper_ballot = (req, res) => {
+
   const campaign_id = Number(req.body.campaign_id)
-  const member_id = Number(req.body.member_id)
   const selections = req.body.selections
-  console.log(req.body)
 
   conn.beginTransaction((err) => {
     if (err) {
       return res.send(err)
     }
 
-    // First create the ballot entry
-    const insertBallot = `INSERT INTO ballots (campaign_id, time_submitted, ballot_type) VALUES (?, ?, ?)`
-    const ballotValues = [campaign_id, new Date(), 'DIGITAL']
+    const ballotIds = []
+    selections.forEach(s => {
+      if (ballotIds.indexOf(s.ballot_id) == -1) {
+        ballotIds.push(s.ballot_id)
+      }
+    })
 
-    conn.query(insertBallot, ballotValues, function(error1, result1) {
-      if (error1) {
+    const insertBallot = `INSERT IGNORE INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES ?`
+    const ballotValues = ballotIds.map(b => [b, campaign_id, new Date(), "PAPER"])
+
+    conn.query(insertBallot, [ballotValues], function(ballotError, ballots) {
+      if (ballotError) {
         return conn.rollback(() => {
-          return res.status(501).send(error1)
-        })
+          return res.status(501).send(ballotError)
+        })        
       }
 
-    // Then insert the choices
-      const ballot_id = result1.insertId
+      const added = ballots.affectedRows
+
       const insertSelections = `INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES ?`
       const ballotSelections = selections.map((selection) => {
-        return [ballot_id, selection.question_id, selection.response_id]
+        return [selection.ballot_id, selection.question_id, selection.response_id]
       })
 
-      conn.query(insertSelections, [ballotSelections], function(error2, result2) {
-        if (error2) {
+      conn.query(insertSelections, [ballotSelections], function(selectionsError, response) {
+        if (selectionsError) {
           return conn.rollback(() => {
-            return res.status(501).send(error2)
+            return res.status(501).send(selectionsError)
           })
         }
 
-        // Then update the vote count
-        const updateCount = `UPDATE choices SET vote_count = vote_count + 1 WHERE response_id IN (?)`
-        const countValues = selections.map((selection) => selection.response_id)
+        let choices = {}
+        selections.forEach(s => {
+          if (choices.hasOwnProperty(s.response_id)) {
+            choices[s.response_id]++
+          } else {
+            choices[s.response_id] = 1
+          }
+        })
 
-        conn.query(updateCount, [countValues], function(error3, result3) {
-          if (error3) {
+        let updateCount = `UPDATE choices SET vote_count = (case`
+        for (const choice in choices) {
+          updateCount += ` when response_id = ${choice} then vote_count + ${choices[choice]}`
+        }
+        updateCount += ` end) WHERE response_id IN (?)`
+        
+        console.log(updateCount)
+        const countValues = selections.map((selection) => Number(selection.response_id))
+        
+        conn.query(updateCount, [countValues], function(countError, count) {
+          if (countError) {
             return conn.rollback(() => {
-              return res.status(501).send(error3)
+              console.log(countError)
+              return res.status(501).send(countError)
             })
           }
 
-          // Update the member's vote status
-          const updateMember = `UPDATE campaign_voters SET voted = ?, voted_time = ? WHERE member_id = ? AND campaign_id = ? AND voted <> 'Y'`
-          const memberValues = ["Y", new Date(), member_id, campaign_id]
 
-          conn.query(updateMember, memberValues, function(error4, result4) {
-            if (error4) {
+          // Increment the campaign's vote count
+          const incrementVotes = `UPDATE campaigns SET vote_count = vote_count + ${added} WHERE campaign_id = ?`
+          conn.query(incrementVotes, [campaign_id], function(voteError, vote) {
+            if (voteError) {
               return conn.rollback(() => {
-                return res.status(501).send(error4)
+                return res.status(501).send(voteError)
               })
             }
 
-            // Increment the campaign's vote count
-            const incrementVotes = `UPDATE campaigns SET vote_count = vote_count + 1 WHERE campaign_id = ?`
-            conn.query(incrementVotes, [campaign_id], function(error5, result5) {
-              if (error5) {
+            conn.commit(function (commitError) {
+              if (commitError) {
+                return conn.rollback(function () {
+                  return res.status(501).send(commitError);
+                });
+              }
+    
+              return res.send({message: `Added ${added} ballots.`});
+            });
+          })
+        })
+      })
+
+    })
+  })
+}
+
+exports.submit_ballot = (req, res) => {
+  const society_id = Number(req.body.society_id)
+  const campaign_id = Number(req.body.campaign_id)
+  const member_id = Number(req.body.member_id)
+  const selections = req.body.selections
+
+  conn.beginTransaction((err) => {
+    if (err) {
+      return res.send(err)
+    }
+
+    // Get last ballot id
+    const getId = `SELECT MAX(ballot_id) AS last_id FROM ballots WHERE campaign_id = ?`
+    conn.query(getId, [campaign_id], function(idErr, idResp) {
+      if (idErr) {
+        return conn.rollback(() => {
+          console.log(idErr)
+          return res.status(501).send(idErr)
+        })
+      }
+      const id = idResp[0].last_id
+
+      console.log(typeof id)
+      console.log(id)
+      const newId = id ? id++ : 1
+
+
+      // First create the ballot entry
+      const insertBallot = `INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (?, ?, ?, ?)`
+      const ballotValues = [newId, campaign_id, new Date(), 'DIGITAL']
+  
+      conn.query(insertBallot, ballotValues, function(error1, result1) {
+        if (error1) {
+          return conn.rollback(() => {
+            return res.status(501).send(error1)
+          })
+        }
+  
+        
+        const insertSelections = `INSERT INTO question_selections (ballot_id, question_id, response_id) VALUES ?`
+        const ballotSelections = selections.map((selection) => {
+          return [newId, selection.question_id, selection.response_id]
+        })
+  
+        conn.query(insertSelections, [ballotSelections], function(error2, result2) {
+          if (error2) {
+            return conn.rollback(() => {
+              return res.status(501).send(error2)
+            })
+          }
+  
+          // Then update the vote count
+          const updateCount = `UPDATE choices SET vote_count = vote_count + 1 WHERE response_id IN (?)`
+          const countValues = selections.map((selection) => selection.response_id)
+  
+          conn.query(updateCount, [countValues], function(error3, result3) {
+            if (error3) {
+              return conn.rollback(() => {
+
+                return res.status(501).send(error3)
+              })
+            }
+  
+            // Update the member's vote status
+            const updateMember = `UPDATE campaign_voters SET voted = ?, voted_time = ? WHERE member_id = ? AND campaign_id = ? AND voted <> 'Y'`
+            const memberValues = ["Y", new Date(), member_id, campaign_id]
+  
+            conn.query(updateMember, memberValues, function(error4, result4) {
+              if (error4) {
                 return conn.rollback(() => {
-                  return res.status(501).send(error5)
+                  return res.status(501).send(error4)
                 })
               }
-
-              conn.commit(function (commitError) {
-                if (commitError) {
-                  return conn.rollback(function () {
-                    return res.status(501).send(commitError);
-                  });
+  
+              // Increment the campaign's vote count
+              const incrementVotes = `UPDATE campaigns SET vote_count = vote_count + 1 WHERE campaign_id = ?`
+              conn.query(incrementVotes, [campaign_id], function(error5, result5) {
+                if (error5) {
+                  return conn.rollback(() => {
+                    return res.status(501).send(error5)
+                  })
                 }
-      
-                return res.send(result5);
-              });
+  
+                conn.commit(function (commitError) {
+                  if (commitError) {
+                    return conn.rollback(function () {
+                      return res.status(501).send(commitError);
+                    });
+                  }
+        
+                  return res.send(result5);
+                });
+              })
+  
             })
-
+            
           })
-          
+  
+  
         })
-
-
       })
     })
   })

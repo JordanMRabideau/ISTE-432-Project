@@ -613,6 +613,8 @@ module.exports = (app) => {
   // Submit a user ballot
   router.post("/ballot/submit", controller.submit_ballot)
 
+  router.post("/ballot/import", controller.submit_paper_ballot)
+
   // Get society's campaigns
   router.get(
     "/societies/campaigns/:society_id",
