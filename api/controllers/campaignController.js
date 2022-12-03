@@ -87,11 +87,13 @@ exports.generate_campaign = (req, res) => {
                 ) {
                   questionIds.push(i);
                 }
-  
+                
+                // Bulk insert of ballot choices
                 const insertBallotChoices = `INSERT INTO choices (campaign_id, question_id, name, bio, image_filepath, vote_count, choice_placement) VALUES ?`;
   
                 let insertChoicesValues = [];
-  
+                
+                // Create list of values to be inserted to table for each choice
                 req.body.questions.forEach((question, questionIndex) => {
                   const newRow = [campaign_id, questionIds[questionIndex]];
                   const choiceInfo = question.choices.map((choice) => {
@@ -182,6 +184,7 @@ exports.submit_paper_ballot = (req, res) => {
       return res.send(err)
     }
 
+    // Gather unique question ID's
     const ballotIds = []
     selections.forEach(s => {
       if (ballotIds.indexOf(s.ballot_id) == -1) {
@@ -189,6 +192,7 @@ exports.submit_paper_ballot = (req, res) => {
       }
     })
 
+    // Ignore duplicate ballot IDs and submit the rest
     const insertBallot = `INSERT IGNORE INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES ?`
     const ballotValues = ballotIds.map(b => [b, campaign_id, new Date(), "PAPER"])
 
@@ -213,6 +217,7 @@ exports.submit_paper_ballot = (req, res) => {
           })
         }
 
+        // Get choices and count votes of each choice
         let choices = {}
         selections.forEach(s => {
           if (choices.hasOwnProperty(s.response_id)) {
@@ -222,13 +227,13 @@ exports.submit_paper_ballot = (req, res) => {
           }
         })
 
+        // Iterating over choices object to update choice vote counts
         let updateCount = `UPDATE choices SET vote_count = (case`
         for (const choice in choices) {
           updateCount += ` when response_id = ${choice} then vote_count + ${choices[choice]}`
         }
         updateCount += ` end) WHERE response_id IN (?)`
         
-        console.log(updateCount)
         const countValues = selections.map((selection) => Number(selection.response_id))
         
         conn.query(updateCount, [countValues], function(countError, count) {
@@ -380,7 +385,7 @@ exports.get_result_sample = (req, res) => {
   let values = [campaign_id]
   let query1
   
-  // Range between ballot ID's
+  // Range between ballot ID's, choices with votes
   if (end_ballot) {
     values.push(start_ballot, end_ballot)
     query1 = `SELECT ballots.campaign_id, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
@@ -408,7 +413,7 @@ exports.get_result_sample = (req, res) => {
       return res.send(error)
     }
 
-    // Results of campaign
+    // Results of campaign with all choices
     const query2 = `SELECT 
       ballot_questions.question_id, ballot_questions.question_placement, question, maximum_selections, choices.response_id, choices.name, choices.choice_placement 
       FROM ballot_questions
@@ -471,6 +476,7 @@ exports.generate_society = (req, res) => {
     const insertSociety = `INSERT INTO society (name, auth1_name, auth2_name, member_count) VALUES (?, ?, ?, ?)`;
     const societyValues = [society_name, auth1_name, auth2_name, member_count];
 
+    // Insert the society
     conn.query(insertSociety, societyValues, function (error1, result1) {
       if (error1) {
         return conn.rollback(() => {
@@ -478,6 +484,7 @@ exports.generate_society = (req, res) => {
         });
       }
 
+      // Insert members into the society
       const society_id = result1.insertId;
       const membersValues = members.map((mem) => {
         return [society_id, ...mem];
