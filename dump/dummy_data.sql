@@ -11,19 +11,12 @@ INSERT INTO members (society_id, name, admin, auth1, auth2) VALUES (1, "Jordan R
 INSERT INTO members (society_id, name, admin, auth1, auth2) VALUES (1, "Ryan Beach", "N", "05", "beach05");
 INSERT INTO members (society_id, name, admin, auth1, auth2) VALUES (1, "Steffen Barr", "N", "06", "barr06");
 
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (1, 1, "Y", "2022-11-18 10:30:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (2, 1, "Y", "2022-11-18 11:40:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (3, 1, "Y", "2022-11-18 16:00:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (4, 1, "Y", "2022-11-18 05:30:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (5, 1, "Y", "2022-11-18 10:22:00");
-INSERT INTO campaign_voters (member_id, campaign_id, voted, voted_time) VALUES (6, 1, "Y", "2022-11-18 19:34:22");
-
-INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (1, 1, "2022-11-18 10:30:00", "DIGITAL");
-INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (2, 1, "2022-11-18 11:40:00", "DIGITAL");
-INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (3, 1, "2022-11-18 16:00:00", "DIGITAL");
-INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (4, 1, "2022-11-18 05:30:00", "DIGITAL");
-INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (5, 1, "2022-11-18 10:22:00", "DIGITAL");
-INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (6, 1, "2022-11-18 19:34:22", "DIGITAL");
+INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (1, 1, "N");
+INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (2, 1, "N");
+INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (3, 1, "N");
+INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (4, 1, "N");
+INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (5, 1, "N");
+INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (6, 1, "N");
 
 INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 1, 1, 1);
 INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 1, 2, 3);
