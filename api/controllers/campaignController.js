@@ -306,9 +306,9 @@ exports.submit_ballot = (req, res) => {
           return res.status(501).send(idErr);
         });
       }
-      const id = idResp[0].last_id;
+      let id = idResp[0].last_id;
 
-      const newId = id ? id++ : 1;
+      const newId = id ? id+= 1 : 1;
 
       // First create the ballot entry
       const insertBallot = `INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (?, ?, ?, ?)`;
@@ -317,9 +317,12 @@ exports.submit_ballot = (req, res) => {
       conn.query(insertBallot, ballotValues, function (error1, result1) {
         if (error1) {
           return conn.rollback(() => {
+            console.log(error1)
             return res.status(501).send(error1);
           });
         }
+
+        const returnedId = result1.insertId
 
         const insertSelections = `INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES ?`;
         const ballotSelections = selections.map((selection) => {
@@ -387,7 +390,7 @@ exports.submit_ballot = (req, res) => {
                           });
                         }
 
-                        return res.send(result5);
+                        return res.send({ballot: newId});
                       });
                     }
                   );
