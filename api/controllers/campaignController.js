@@ -108,7 +108,6 @@ exports.generate_campaign = (req, res) => {
                   choiceInfo.forEach((choiceRow) => {
                     insertChoicesValues.push(newRow.concat(...choiceRow));
                   });
-                  console.log(insertChoicesValues);
                 });
   
                 conn.query(
@@ -239,7 +238,6 @@ exports.submit_paper_ballot = (req, res) => {
         conn.query(updateCount, [countValues], function(countError, count) {
           if (countError) {
             return conn.rollback(() => {
-              console.log(countError)
               return res.status(501).send(countError)
             })
           }
@@ -293,8 +291,6 @@ exports.submit_ballot = (req, res) => {
       }
       const id = idResp[0].last_id
 
-      console.log(typeof id)
-      console.log(id)
       const newId = id ? id++ : 1
 
 
@@ -409,7 +405,6 @@ exports.get_result_sample = (req, res) => {
 
   conn.query(query1, values, function(error, response) {
     if (error) {
-      console.log(error)
       return res.send(error)
     }
 
@@ -512,3 +507,81 @@ exports.generate_society = (req, res) => {
   });
 
 };
+
+exports.edit_campaign = (req, res) => {
+  const campaign_id = req.body.campaign_id
+  const campaign_name = req.body.name
+  const start_time = req.body.start_time
+  const end_time = req.body.end_time
+  const questions = req.body.questions
+  conn.beginTransaction((err) => {
+    if (err) {
+      return res.send(err)
+    }
+
+    const updateCampaign = `UPDATE campaigns SET name = ?, start_time = ?, end_time = ? WHERE campaign_id = ?`
+    const campaignValues = [campaign_name, start_time, end_time, campaign_id]
+
+    conn.query(updateCampaign, campaignValues, function(error1, result1) {
+      if (error1) {
+        return conn.rollback(() => {
+          return res.send(error1);
+        });
+      }
+
+      const updateQuestions = `INSERT INTO ballot_questions (question_id, campaign_id, question, maximum_selections, question_placement)
+      VALUES ? ON DUPLICATE KEY UPDATE question=VALUES(question), maximum_selections=VALUES(maximum_selections), question_placement=VALUES(question_placement)`
+      const questionValues = questions.map(q => [q.questionNum, campaign_id, q.title, q.limit, q.position])
+      conn.query(updateQuestions, [questionValues], function(error2, result2) {
+        if (error2) {
+          return conn.rollback(() => {
+            return res.send(error2);
+          });
+        }
+
+        const updateChoices = `INSERT INTO choices (response_id, campaign_id, question_id, name, bio, image_filepath, choice_placement) VALUES ?
+        ON DUPLICATE KEY UPDATE name=VALUES(name), bio=VALUES(bio), image_filepath=VALUES(image_filepath), choice_placement=VALUES(choice_placement)` 
+        const insertChoicesValues = [];
+
+        req.body.questions.forEach((question, questionIndex) => {
+          // const newRow = [campaign_id, questions[questionIndex].questionNum];
+          const choiceInfo = question.choices.map((choice) => {
+            return [
+              choice.choiceNum,
+              campaign_id,
+              questions[questionIndex].questionNum,
+              choice.name,
+              choice.info,
+              choice.image,
+              choice.position,
+            ];
+          });
+          choiceInfo.forEach((choiceRow) => {
+            insertChoicesValues.push(choiceRow);
+          });
+        });
+
+        console.log(insertChoicesValues)
+        conn.query(updateChoices, [insertChoicesValues], function(error3, result3) {
+          if (error3) {
+            return conn.rollback(() => {
+              return res.send(error3);
+            });
+          }
+
+          conn.commit(function (commitError) {
+            if (commitError) {
+              return conn.rollback(function () {
+                return res.send(commitError);
+              });
+            }
+  
+            return res.send({message: "Campaign updated"});
+          });
+        })
+
+      })
+
+    })
+  })
+}

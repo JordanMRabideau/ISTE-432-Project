@@ -579,7 +579,7 @@ module.exports = (app) => {
   router.get("/campaign/results/:campaignId", function (req, res) {
     const values = [req.params.campaignId];
     const query = `SELECT 
-      ballot_questions.question_id, ballot_questions.question_placement, question, maximum_selections, choices.response_id, choices.name, choices.title, choices.bio, choices.image_filepath, choices.vote_count, choices.choice_placement 
+      ballot_questions.question_id, campaigns.name AS campaign_name, campaigns.start_time, campaigns.end_time, ballot_questions.question_placement, question, maximum_selections, choices.response_id, choices.name, choices.title, choices.bio, choices.image_filepath, choices.vote_count, choices.choice_placement 
       FROM ballot_questions
       JOIN choices USING (question_id, campaign_id)
       JOIN campaigns USING (campaign_id)
@@ -613,8 +613,9 @@ module.exports = (app) => {
 
   // Update campaign active status
   router.put("/activate", controller.toggle_campaign)
-  
-  // Get results between range of ballot IDs
+
+  router.put("/campaign/edit", controller.edit_campaign)
+
   router.get("/campaign/results/:campaignId/:startBallot/:endBallot?", controller.get_result_sample)
 
   // Get member's available campaigns
