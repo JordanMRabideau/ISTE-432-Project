@@ -23,13 +23,13 @@ INSERT INTO ballot_questions (campaign_id, question, maximum_selections, questio
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "President", 1, 3);
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "Janitor", 1, 4);
 
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "Gabe Newel", "Steam guy", "A web-interface dude", "./assets/images/image01.jpg", 1, 1);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "Tim Cook", "Apple guy", "A wealthy dude", "./assets/images/image02.jpg", 3, 2);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 1, "David Munson", "1mil per year guy", "An EDM dude", "./assets/images/image03.jpg", 2, 3);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Wayne Lytle", "Animation guy", "An anti key-frame dude", "./assets/images/image04.jpg", 1, 1);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Bill Gates", "O.S. guy", "An GUI fan", "./assets/images/image05.jpg", 3, 2);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 2, "Elon Musk", "Chief Twit", "A Twitter bankruptor", "./assets/images/image06.jpg", 2, 3);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Jenson Huang", "Overpriced graphics unit guy", "An all the frames type of dude", "./assets/images/image07.jpg", 2, 1);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Stephen Zilora JR.", "Lil guy", "A pretty cool dude", "./assets/images/image08.jpg", 2, 2);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Charlie Murphy", "Ultimate slappie guy", "An interesting dude", "./assets/images/image09.jpg", 1, 3);
-INSERT INTO choices (campaign_id, question_id, name, title, bio, image_filepath, vote_count, choice_placement) VALUES (1, 3, "Dan Mordaunt", "COD gamer", "Call of duty guy, loves to play for hours on end, only stops to eat, sleep, poop, and take medicine. He also loves the older generation consoles and lives most of his life pretending it's the early 2000s.", "./assets/images/image10.jpg", 1, 4);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 1, "Gabe Newel", "Steam guy", "A web-interface dude", 0, 1);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 1, "Tim Cook", "Apple guy", "A wealthy dude", 0, 2);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 1, "David Munson", "1mil per year guy", "An EDM dude", 0, 3);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 2, "Wayne Lytle", "Animation guy", "An anti key-frame dude", 0, 1);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 2, "Bill Gates", "O.S. guy", "An GUI fan", 0, 2);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 2, "Elon Musk", "Chief Twit", "A Twitter bankruptor", 0, 3);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 3, "Jenson Huang", "Overpriced graphics unit guy", "An all the frames type of dude", 0, 1);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 3, "Stephen Zilora JR.", "Lil guy", "A pretty cool dude", 0, 2);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 3, "Charlie Murphy", "Ultimate slappie guy", "An interesting dude", 0, 3);
+INSERT INTO choices (campaign_id, question_id, name, title, bio, vote_count, choice_placement) VALUES (1, 3, "Dan Mordaunt", "COD gamer", "Call of duty guy, loves to play for hours on end, only stops to eat, sleep, poop, and take medicine. He also loves the older generation consoles and lives most of his life pretending it's the early 2000s.", 0, 4);

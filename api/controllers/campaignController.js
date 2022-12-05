@@ -207,6 +207,10 @@ exports.submit_paper_ballot = (req, res) => {
 
       const added = ballots.affectedRows;
 
+      if (added == 0) {
+        return res.send({ message: `Added ${added} ballots.` });
+      }
+
       const insertSelections = `INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES ?`;
       const ballotSelections = selections.map((selection) => {
         return [
@@ -308,7 +312,7 @@ exports.submit_ballot = (req, res) => {
       }
       let id = idResp[0].last_id;
 
-      const newId = id ? id+= 1 : 1;
+      const newId = id ? (id += 1) : 1;
 
       // First create the ballot entry
       const insertBallot = `INSERT INTO ballots (ballot_id, campaign_id, time_submitted, ballot_type) VALUES (?, ?, ?, ?)`;
@@ -317,12 +321,12 @@ exports.submit_ballot = (req, res) => {
       conn.query(insertBallot, ballotValues, function (error1, result1) {
         if (error1) {
           return conn.rollback(() => {
-            console.log(error1)
+            console.log(error1);
             return res.status(501).send(error1);
           });
         }
 
-        const returnedId = result1.insertId
+        const returnedId = result1.insertId;
 
         const insertSelections = `INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES ?`;
         const ballotSelections = selections.map((selection) => {
@@ -390,7 +394,7 @@ exports.submit_ballot = (req, res) => {
                           });
                         }
 
-                        return res.send({ballot: newId});
+                        return res.send({ ballot: newId });
                       });
                     }
                   );
@@ -424,7 +428,6 @@ exports.get_result_sample = (req, res) => {
     WHERE ballots.campaign_id = ?
     AND ballots.ballot_id BETWEEN ? and ?`;
   } else {
-    
     // Particular ballot ID
     values.push(start_ballot);
     query1 = `SELECT ballots.campaign_id, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
@@ -435,7 +438,7 @@ exports.get_result_sample = (req, res) => {
     WHERE ballots.campaign_id = ?
     AND ballots.ballot_id = ?`;
   }
- 
+
   conn.query(query1, values, function (error, response) {
     if (error) {
       return res.send(error);
