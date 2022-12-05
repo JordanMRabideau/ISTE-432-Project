@@ -18,25 +18,6 @@ INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (4, 1, "N");
 INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (5, 1, "N");
 INSERT INTO campaign_voters (member_id, campaign_id, voted) VALUES (6, 1, "N");
 
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 1, 1, 1);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 1, 2, 3);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 1, 3, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 2, 1, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 2, 2, 1);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 2, 3, 3);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 3, 1, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 3, 2, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 3, 3, 1);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 4, 1, 3);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 4, 2, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 4, 3, 1);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 5, 1, 3);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 5, 2, 3);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 5, 3, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 6, 1, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 6, 2, 2);
-INSERT INTO question_selections (campaign_id, ballot_id, question_id, response_id) VALUES (1, 6, 3, 2);
-
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "Secretary", 2, 1);
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "Warden", 1, 2);
 INSERT INTO ballot_questions (campaign_id, question, maximum_selections, question_placement) VALUES (1, "President", 1, 3);
