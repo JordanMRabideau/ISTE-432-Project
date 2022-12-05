@@ -417,24 +417,25 @@ exports.get_result_sample = (req, res) => {
   if (end_ballot) {
     values.push(start_ballot, end_ballot);
     query1 = `SELECT ballots.campaign_id, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
-      FROM ballots
-      JOIN question_selections USING (ballot_id)
-      RIGHT JOIN ballot_questions ON ballot_questions.question_id = question_selections.question_id
-      JOIN choices ON choices.response_id = question_selections.response_id
-      WHERE ballots.campaign_id = ?
-      AND ballot_id BETWEEN ? AND ?`;
+    FROM ((question_selections
+    JOIN ballots ON question_selections.ballot_id = ballots.ballot_id AND question_selections.campaign_id = ballots.campaign_id)
+    JOIN ballot_questions ON ballot_questions.campaign_id = ballots.campaign_id AND question_selections.question_id = ballot_questions.question_id)
+    JOIN choices ON choices.campaign_id = question_selections.campaign_id AND question_selections.response_id = choices.response_id
+    WHERE ballots.campaign_id = ?
+    AND ballots.ballot_id BETWEEN ? and ?`;
   } else {
+    
     // Particular ballot ID
     values.push(start_ballot);
-    query1 = `SELECT ballots.campaign_id, COUNT(response_id) AS count, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
-      FROM ballots
-      JOIN question_selections USING (ballot_id)
-      RIGHT JOIN ballot_questions ON ballot_questions.question_id = question_selections.question_id
-      JOIN choices ON choices.response_id = question_selections.response_id
-      WHERE ballots.campaign_id = ?
-      AND ballot_id = ?`;
+    query1 = `SELECT ballots.campaign_id, ballots.ballot_id, question_selections.question_id, question_selections.response_id, question, question_placement, name, title, bio, choice_placement
+    FROM ((question_selections
+    JOIN ballots ON question_selections.ballot_id = ballots.ballot_id AND question_selections.campaign_id = ballots.campaign_id)
+    JOIN ballot_questions ON ballot_questions.campaign_id = ballots.campaign_id AND question_selections.question_id = ballot_questions.question_id)
+    JOIN choices ON choices.campaign_id = question_selections.campaign_id AND question_selections.response_id = choices.response_id
+    WHERE ballots.campaign_id = ?
+    AND ballots.ballot_id = ?`;
   }
-
+ 
   conn.query(query1, values, function (error, response) {
     if (error) {
       return res.send(error);
@@ -459,6 +460,7 @@ exports.get_result_sample = (req, res) => {
 
       response.forEach((r) => {
         const choice = result2.find((q) => q.response_id === r.response_id);
+
         choice.vote_count++;
       });
 
