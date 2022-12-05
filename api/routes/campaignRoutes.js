@@ -52,7 +52,7 @@ module.exports = (app) => {
 
   // Get society auth labels
   router.get("/authname/:society_id", function (req, res) {
-    const sql = 
+    const sql =
       "SELECT society.auth1_name, society.auth2_name FROM society WHERE society_id = ?";
     const value = [req.params.society_id];
 
@@ -61,7 +61,7 @@ module.exports = (app) => {
         return res.send(err);
       }
 
-      return res.send(result)
+      return res.send(result);
     });
   });
 
@@ -74,7 +74,7 @@ module.exports = (app) => {
       if (err) {
         return res.send(err);
       }
-      
+
       return res.send(result);
     });
   });
@@ -169,26 +169,23 @@ module.exports = (app) => {
   // Sign-on route for clients, or non-admin users.
   router.post("/signin", function (req, res) {
     const password = req.body.auth2;
-    const value = req.body.auth1;
+    const auth1 = req.body.auth1;
+    const society = req.body.society;
 
     const sql =
-      "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ?";
-    conn.query(sql, value, function (err, results) {
+      "SELECT members.member_id, members.auth2 FROM members WHERE members.auth1 = ? AND society_id = ?";
+    conn.query(sql, [auth1, society], function (err, results) {
       if (err) {
         return res.status(502).send();
       }
 
       if (results.length === 0) {
-        return res.status(401).send()
-      }
-
-      else if (password === results[0].auth2) {
-        return res.send({user: results[0].member_id})
-      }
-
-      else {
         return res.status(401).send();
-      } 
+      } else if (password === results[0].auth2) {
+        return res.send({ user: results[0].member_id });
+      } else {
+        return res.status(401).send();
+      }
     });
   });
 
@@ -205,19 +202,15 @@ module.exports = (app) => {
       }
 
       if (results.length === 0) {
-        return res.status(401).send()
-      }
-
-      else if (password === results[0].auth2) {
-        return res.send({user: results[0].member_id})
-      }
-
-      else {
         return res.status(401).send();
-      } 
+      } else if (password === results[0].auth2) {
+        return res.send({ user: results[0].member_id });
+      } else {
+        return res.status(401).send();
+      }
     });
   });
- 
+
   // Add ballot
   router.post("/ballot", function (req, res) {
     const sql1 =
@@ -284,9 +277,9 @@ module.exports = (app) => {
   router.post("/society/generate", controller.generate_society);
 
   // Submit a user ballot
-  router.post("/ballot/submit", controller.submit_ballot)
+  router.post("/ballot/submit", controller.submit_ballot);
 
-  router.post("/ballot/import", controller.submit_paper_ballot)
+  router.post("/ballot/import", controller.submit_paper_ballot);
 
   // Get society's campaigns
   router.get(
@@ -295,14 +288,20 @@ module.exports = (app) => {
   );
 
   // Update campaign active status
-  router.put("/activate", controller.toggle_campaign)
+  router.put("/activate", controller.toggle_campaign);
 
-  router.put("/campaign/edit", controller.edit_campaign)
+  router.put("/campaign/edit", controller.edit_campaign);
 
-  router.get("/campaign/results/:campaignId/:startBallot/:endBallot?", controller.get_result_sample)
+  router.get(
+    "/campaign/results/:campaignId/:startBallot/:endBallot?",
+    controller.get_result_sample
+  );
 
   // Get member's available campaigns
-  router.get("/campaigns/:society_id/:member_id", controller.getMemberCampaigns)
+  router.get(
+    "/campaigns/:society_id/:member_id",
+    controller.getMemberCampaigns
+  );
 
   app.use("/api", router);
 };
